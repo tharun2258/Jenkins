@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY')  // Jenkins credential ID
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_KEY')
+        AWS_REGION = 'us-east-1'  // Change to your AWS region
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -10,7 +16,7 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                dir('AWS_S3') {  // Navigate to the correct directory
+                dir('AWS_S3') {
                     bat 'terraform init'
                 }
             }
