@@ -10,19 +10,25 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                bat 'terraform init'
+                dir('AWS_S3') {  // Navigate to the correct directory
+                    bat 'terraform init'
+                }
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                bat 'terraform plan -out=tfplan'
+                dir('AWS_S3') {
+                    bat 'terraform plan -out=tfplan'
+                }
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                bat 'terraform apply -auto-approve tfplan'
+                dir('AWS_S3') {
+                    bat 'terraform apply -auto-approve tfplan'
+                }
             }
         }
     }
