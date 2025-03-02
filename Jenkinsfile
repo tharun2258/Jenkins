@@ -36,14 +36,16 @@ pipeline {
                     bat 'terraform apply -auto-approve tfplan'
                 }
             }
+        }
 
         stage('Terraform Destroy'){
             steps{
                 dir('AWS_S3'){
-                    bat 'terraform destroy -auto-approve tfplan'
+                    bat 'terraform destroy -auto-approve'
                 }
             }
-        }
+        
+        
         }
     }
 }
