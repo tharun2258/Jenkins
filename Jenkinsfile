@@ -18,13 +18,15 @@ pipeline {
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
-                    bat """
-                        set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
-                        set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
-                        terraform init
-                        terraform plan -out=tfplan
-                        terraform show -no-color tfplan > tfplan.txt
-                    """
+                    dir('C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\AWS-EC2-Terraform') {  // Ensuring correct working directory
+                        bat """
+                            set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
+                            set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
+                            terraform init
+                            terraform plan -out=tfplan
+                            terraform show -no-color tfplan > tfplan.txt
+                        """
+                    }
                 }
             }
         }
@@ -35,7 +37,7 @@ pipeline {
             }
             steps {
                 script {
-                    def planContent = readFile('tfplan.txt')
+                    def planContent = readFile('C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\AWS-EC2-Terraform\\tfplan.txt')
                     input message: "Do you want to apply the Terraform plan?",
                           parameters: [text(name: 'Plan', defaultValue: planContent, description: 'Terraform Plan Output')]
                 }
@@ -48,11 +50,13 @@ pipeline {
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
-                    bat """
-                        set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
-                        set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
-                        terraform apply -input=false tfplan
-                    """
+                    dir('C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\AWS-EC2-Terraform') {  // Ensuring correct working directory
+                        bat """
+                            set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
+                            set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
+                            terraform apply -input=false tfplan
+                        """
+                    }
                 }
             }
         }
