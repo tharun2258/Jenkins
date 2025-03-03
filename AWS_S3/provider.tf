@@ -10,7 +10,7 @@ terraform {
 
 terraform {
   backend "s3" {
-    bucket         = "terraform-tfstate-bukcet-tharun"
+    bucket         = "tharun-demo-terraform-state-bucket"
     key            = "AWS_S3/terraform.tfstate"
     region         = "us-east-1"
   }
