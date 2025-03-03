@@ -29,7 +29,7 @@ pipeline {
             steps {
                 dir("${TF_WORKING_DIR}") {
                     bat 'terraform version'  // Verify Terraform installation
-                    bat 'terraform init'
+                    bat 'terraform init -reconfigure'
                 }
             }
         }
