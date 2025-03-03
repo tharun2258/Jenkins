@@ -8,7 +8,3 @@ variable "bucket_env" {
   
 }
 
-variable "iam_user_password" {
-    type = string
-  
-}
