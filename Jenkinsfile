@@ -28,7 +28,7 @@ pipeline{
         }
 
 
-        //Terraform fmt
+        //Terraform fmt checking
         stage('Terraform fmt check'){
             steps{
                 dir('AWS_S3'){
