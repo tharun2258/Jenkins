@@ -4,6 +4,8 @@ resource "random_id" "random_id" {
 }
 
 
+
+
 resource "aws_s3_bucket" "s3_bucket" {
 
     bucket = format("%s-%s" , var.bucket_name , random_id.random_id.hex)
@@ -28,29 +30,29 @@ resource "aws_s3_object" "s3_object" {
 
 
 
-resource "aws_s3_bucket_versioning" "s3_bucket_versioning" {
-    bucket = aws_s3_bucket.s3_bucket.id
-    versioning_configuration {
-      status = "Enabled"
-    }
+# resource "aws_s3_bucket_versioning" "s3_bucket_versioning" {
+#     bucket = aws_s3_bucket.s3_bucket.id
+#     versioning_configuration {
+#       status = "Enabled"
+#     }
   
-}
+# }
 
-resource "aws_s3_bucket" "s3_bucket_logging_bucket" {
-    bucket = format("%s-%s" , "test-logging", random_id.random_id.hex)
+# resource "aws_s3_bucket" "s3_bucket_logging_bucket" {
+#     bucket = format("%s-%s" , "test-logging", random_id.random_id.hex)
 
-    tags = {
-      Environment = "log-bucket-dev"
-    }
+#     tags = {
+#       Environment = "log-bucket-dev"
+#     }
   
-}
+# }
 
-resource "aws_s3_bucket_logging" "s3_bucket_logging" {
-    bucket = aws_s3_bucket.s3_bucket.id
-    target_bucket = aws_s3_bucket.s3_bucket_logging_bucket.id
-    target_prefix = "/logging"
+# resource "aws_s3_bucket_logging" "s3_bucket_logging" {
+#     bucket = aws_s3_bucket.s3_bucket.id
+#     target_bucket = aws_s3_bucket.s3_bucket_logging_bucket.id
+#     target_prefix = "/logging"
   
-}
+# }
 
 resource "aws_s3_bucket_public_access_block" "public_access_enable" {
     bucket = aws_s3_bucket.s3_bucket.id
