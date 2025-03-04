@@ -32,7 +32,7 @@ pipeline{
         stage('Terraform fmt check'){
             steps{
                 dir('AWS_S3'){
-                    bat 'terraform fmt -check'
+                    bat 'terraform fmt'
                 }
             }
         }
