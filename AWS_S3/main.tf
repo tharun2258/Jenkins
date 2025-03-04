@@ -75,8 +75,8 @@ resource "aws_s3_bucket_policy" "read_access" {
             {
             "Effect" = "Allow",
             "Principal" = "*",
-            "Action" = ["s3:GetObject"]
-            "Resource"  = "arn:aws:s3:::${aws_s3_bucket.s3_bucket.id}/*"
+            "Action" = ["s3:GetObject"],
+            "Resource"  = "arn:aws:s3:::${aws_s3_bucket.s3_bucket.id}/*",
             }
 
 
