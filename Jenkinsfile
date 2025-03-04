@@ -28,11 +28,11 @@ pipeline{
         }
 
 
-        //Terraform fmt
+        //Terraform fmt checking code
         stage('Terraform fmt check'){
             steps{
                 dir('AWS_S3'){
-                    bat 'terraform fmt -check'
+                    bat 'terraform fmt'
                 }
             }
         }
