@@ -57,7 +57,6 @@ pipeline{
             }
         }
 
-
         stage('Terraform Apply'){
             steps{
                 dir('AWS_S3'){
