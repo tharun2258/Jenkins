@@ -7,53 +7,31 @@ pipeline {
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Retrieve Terraform State') {
             steps {
-                checkout scm
+                copyArtifacts(
+                    projectName: 'Terraform-apply -build-artifact',  // Name of the apply pipeline job
+                    selector: lastSuccessful(),
+                    filter: 'Terraform-Build-Artifact-pipeline/AWS_S3/terraform.tfstate',
+                    target: 'Terraform-Use-Build-Artifact-pipeline/AWS_S3'
+                )
             }
         }
 
         stage('Terraform Init') {
             steps {
-                dir('AWS_S3') {
+                dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
                     bat 'terraform init --reconfigure'
                 }
             }
         }
 
-        stage('Terraform Plan') {
+        stage('Terraform Destroy') {
             steps {
-                dir('AWS_S3') {
-                    bat 'terraform plan -out=tfplan'
+                dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
+                    bat 'terraform destroy -auto-approve'
                 }
             }
-        }
-
-
-        stage('Terraform fmt') {
-            steps {
-                dir('AWS_S3') {
-                    bat 'terraform fmt'
-                }
-            }
-        }
-
-       
-       
-
-        stage('Terraform Apply') {
-            steps {
-                dir('AWS_S3') {
-                    bat 'terraform apply -auto-approve tfplan'
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            echo "Saving Terraform state file as an artifact..."
-            archiveArtifacts artifacts: 'AWS_S3/terraform.tfstate', fingerprint: true
         }
     }
 }
