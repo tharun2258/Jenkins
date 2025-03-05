@@ -1,0 +1,59 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                dir('AWS_S3') {
+                    bat 'terraform init --reconfigure'
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                dir('AWS_S3') {
+                    bat 'terraform plan -out=tfplan'
+                }
+            }
+        }
+
+
+        stage('Terraform fmt') {
+            steps {
+                dir('AWS_S3') {
+                    bat 'terraform fmt'
+                }
+            }
+        }
+
+       
+       
+
+        stage('Terraform Apply') {
+            steps {
+                dir('AWS_S3') {
+                    bat 'terraform apply -auto-approve tfplan'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Saving Terraform state file as an artifact..."
+            archiveArtifacts artifacts: 'AWS_S3/terraform.tfstate', fingerprint: true
+        }
+    }
+}
