@@ -17,6 +17,9 @@ pipeline {
                             target: 'Terraform-Use-Build-Artifact-pipeline/AWS_S3'
                         )
                         echo "State file retrieved successfully."
+
+                        // List the files in the directory to verify
+                        bat 'dir /b'
                 } 
             }
         }
