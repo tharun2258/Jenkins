@@ -21,6 +21,8 @@ pipeline {
                         // List the files in the directory to verify
                         bat 'dir /b'
 
+                        bat 'powershell -Command "Get-Content terraform.tfstate -TotalCount 20"'
+
                         // Print the Terraform state file content
                         bat 'type terraform.tfstate'
                 } 
