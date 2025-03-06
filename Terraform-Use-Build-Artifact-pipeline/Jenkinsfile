@@ -32,10 +32,18 @@ pipeline {
             }
         }
 
+        stage('Terraform plan destroy') {
+            steps {
+                dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
+                    bat 'terraform plan -destroy -out=tfplan'
+                }
+            }
+        }
+
         stage('Terraform Destroy') {
             steps {
                 dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
-                    bat 'terraform destroy -auto-approve'
+                    bat 'terraform apply tfplan -auto-approve'
                 }
             }
         }
