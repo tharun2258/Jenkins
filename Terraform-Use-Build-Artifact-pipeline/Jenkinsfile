@@ -25,6 +25,8 @@ pipeline {
             }
         }
 
+        
+
         stage('Terraform Init') {
             steps {
                 dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
