@@ -9,12 +9,19 @@ pipeline {
     stages {
         stage('Retrieve Terraform State') {
             steps {
-                copyArtifacts(
-                    projectName: 'Terraform-apply -build-artifact',  // Name of the apply pipeline job
-                    selector: lastSuccessful(),
-                    filter: 'Terraform-Build-Artifact-pipeline/AWS_S3/terraform.tfstate',
-                    target: 'Terraform-Use-Build-Artifact-pipeline/AWS_S3'
-                )
+                script {
+                    try {
+                        copyArtifacts(
+                            projectName: 'Terraform-apply-build-artifact',
+                            selector: lastSuccessful(),
+                            filter: 'Terraform-Build-Artifact-pipeline/AWS_S3/terraform.tfstate',
+                            target: 'Terraform-Use-Build-Artifact-pipeline/AWS_S3'
+                        )
+                        echo "State file retrieved successfully."
+                    } catch (Exception e) {
+                        error "Failed to retrieve Terraform state file. Ensure the apply pipeline has run successfully."
+                    }
+                }
             }
         }
 
