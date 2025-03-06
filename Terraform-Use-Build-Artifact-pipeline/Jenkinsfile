@@ -20,6 +20,9 @@ pipeline {
 
                         // List the files in the directory to verify
                         bat 'dir /b'
+
+                        // Print the Terraform state file content
+                        bat 'type terraform.tfstate'
                 } 
             }
         }
