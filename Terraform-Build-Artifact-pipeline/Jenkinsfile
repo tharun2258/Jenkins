@@ -21,15 +21,6 @@ pipeline {
             }
         }
 
-        stage('Terraform Plan') {
-            steps {
-                dir('Terraform-Build-Artifact-pipeline/AWS_S3') {
-                    bat 'terraform plan -out=tfplan'
-                }
-            }
-        }
-
-
         stage('Terraform fmt') {
             steps {
                 dir('Terraform-Build-Artifact-pipeline/AWS_S3') {
@@ -38,8 +29,14 @@ pipeline {
             }
         }
 
-       
-       
+        stage('Terraform Plan') {
+            steps {
+                dir('Terraform-Build-Artifact-pipeline/AWS_S3') {
+                    bat 'terraform plan -out=tfplan'
+                }
+            }
+        }
+
 
         stage('Terraform Apply') {
             steps {
