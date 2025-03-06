@@ -13,7 +13,7 @@ pipeline {
                     try {
                         copyArtifacts(
                             projectName: 'Terraform-apply-build-artifact',
-                            selector: lastSuccessful(),
+                            selector: upstream('SUCCESSFUL'), 
                             filter: 'Terraform-Build-Artifact-pipeline/AWS_S3/terraform.tfstate',
                             target: 'Terraform-Use-Build-Artifact-pipeline/AWS_S3'
                         )
