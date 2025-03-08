@@ -14,6 +14,7 @@ pipeline {
                             projectName: 'Terraform-apply-build-artifact',
                             selector: lastSuccessful(), 
                             filter: '**/AWS_S3/terraform.tfstate',
+                            flatten: true,
                             target: '.'
                         )
                         echo "State file retrieved successfully."
