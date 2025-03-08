@@ -50,7 +50,7 @@ pipeline {
         stage('Terraform plan destroy') {
             steps {
                 dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
-                    bat 'del /F /Q tfplan'  // Delete existing plan file if it exists
+                  
                     bat 'terraform plan -destroy -out=tfplan'  // Generate new plan
                 }
     }
@@ -58,7 +58,7 @@ pipeline {
         stage('Terraform Destroy') {
             steps {
                 dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
-                    bat 'terraform apply tfplan -auto-approve'
+                    bat 'terraform apply -auto-approve tfplan'
                 }
             }
         }
