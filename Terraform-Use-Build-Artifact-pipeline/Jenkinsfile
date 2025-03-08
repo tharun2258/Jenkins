@@ -13,13 +13,11 @@ pipeline {
                     copyArtifacts(
                             projectName: 'Terraform-apply-build-artifact',
                             selector: lastSuccessful(), 
-                            filter: '**/AWS_S3/terraform.tfstate',
-                            flatten: true,
+                            filter: 'terraform.tfstate',
                             target: '.'
                         )
                         echo "State file retrieved successfully."
                         bat 'dir /b'
-                        
                 } 
             }
         }
