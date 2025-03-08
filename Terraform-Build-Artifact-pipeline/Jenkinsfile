@@ -18,7 +18,7 @@ pipeline {
         stage('Terraform Init') {
             steps {
                 dir('Terraform-Build-Artifact-pipeline/AWS_S3') {
-                    bat 'terraform init -reconfigure -backend-config="bucket=my-terraform-state"'
+                    bat 'terraform init -reconfigure -backend-config="bucket=terraform-tfstate-bucket-demo"'
                 }
             }
         }
