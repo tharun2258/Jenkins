@@ -72,7 +72,7 @@ pipeline {
                 # Step 3: Download and apply the restored state
                 aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" ".\\terraform.tfstate"
 
-                terraform init -force-copy
+                terraform init 
                 terraform refresh
                 terraform apply -auto-approve terraform.tfstate
             }
