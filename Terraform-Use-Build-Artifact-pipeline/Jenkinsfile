@@ -18,6 +18,7 @@ pipeline {
                             target: '.'
                         )
                         echo "State file retrieved successfully."
+                        bat 'dir /b'
                         
                 } 
             }
