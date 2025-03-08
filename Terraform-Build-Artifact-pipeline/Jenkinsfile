@@ -56,7 +56,20 @@ pipeline {
             try {
                 Write-Host "Terraform deployment failed! Rolling back..."
 
-                # Step 1: Get the previous version ID of the Terraform state file
+                # Step 1: Fetch the second latest commit from Git
+                git fetch --all
+                $SecondLatestCommit = (git log --pretty=format:"%H" -n 2 | Select-Object -Last 1)
+                
+                if (-not $SecondLatestCommit) {
+                    Write-Host "Failed to retrieve the second latest commit! Manual intervention required."
+                    exit 1
+                }
+                
+                # Step 2: Checkout the second latest commit
+                git checkout $SecondLatestCommit
+                Write-Host "Checked out to commit: $SecondLatestCommit"
+
+                # Step 3: Get the previous version ID of the Terraform state file
                 $PrevVersion = (aws s3api list-object-versions --bucket $env:AWS_BUCKET --prefix $env:STATE_FILE `
                     --query 'Versions[?IsLatest==`false`]|[0].VersionId' --output text)
 
@@ -65,13 +78,11 @@ pipeline {
                     exit 1
                 }
 
-                # Step 2: Restore the previous state version
-                aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" "s3://$env:AWS_BUCKET/$env:STATE_FILE" `
-                    --version-id $PrevVersion --metadata-directive REPLACE
+                # Step 4: Restore the previous state version
+                aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" ".\\terraform.tfstate" `
+                    --version-id $PrevVersion
                 
-                # Step 3: Download and apply the restored state
-                aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" ".\\terraform.tfstate"
-
+                # Step 5: Reinitialize Terraform with the restored state
                 terraform init -force-copy
                 terraform refresh
                 terraform apply -auto-approve
@@ -84,6 +95,7 @@ pipeline {
         }
     }
 }
+
 
 
     // post {
