@@ -55,9 +55,9 @@ pipeline {
                    
                     Write-Host "🔍 Step 1: Fetching previous Terraform state version..."
 
-                    # List all versions of the state file in S3
+                    # List all versions of the state file in S3 (Fixed syntax)
                     aws s3api list-object-versions --bucket $env:AWS_BUCKET --prefix $env:STATE_FILE `
-                        --query "Versions | sort_by(@, &LastModified) | reverse()" --output json > versions.json 2>$null
+                        --query 'Versions | sort_by(@, &LastModified) | reverse()' --output json > versions.json 2>$null
 
                     # Print the raw JSON output for debugging
                     Write-Host "📂 Full version history (latest first):"
@@ -65,7 +65,7 @@ pipeline {
 
                     # Extract the second latest version ID
                     $PREV_VERSION = aws s3api list-object-versions --bucket $env:AWS_BUCKET --prefix $env:STATE_FILE `
-                        --query "Versions | sort_by(@, &LastModified) | reverse()[1].VersionId" --output text 2>$null
+                        --query 'Versions | sort_by(@, &LastModified) | reverse()[1].VersionId' --output text 2>$null
 
                     # Debug: Print the extracted version ID
                     Write-Host "🔎 Extracted Previous Version ID: $PREV_VERSION"
@@ -101,6 +101,7 @@ pipeline {
                     # Step 5: Apply the restored state
                     Write-Host "🚀 Running Terraform Apply..."
                     terraform apply -auto-approve
+
 
 
                     '''
