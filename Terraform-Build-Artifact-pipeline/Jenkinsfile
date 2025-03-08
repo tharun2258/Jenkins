@@ -52,57 +52,32 @@ pipeline {
         failure{
              echo "Terraform deployment failed! Rolling back..."
                     powershell '''
-                   
-                    Write-Host "🔍 Step 1: Fetching previous Terraform state version..."
+                    try {
+                    Write-Host "Terraform deployment failed! Rolling back..."
 
-                    # List all versions of the state file in S3 (Fixed syntax)
-                    aws s3api list-object-versions --bucket $env:AWS_BUCKET --prefix $env:STATE_FILE `
-                        --query 'Versions | sort_by(@, &LastModified) | reverse()' --output json > versions.json 2>$null
+                    # Step 1: Get the previous version ID of the Terraform state file
+                    $PrevVersion = (aws s3api list-object-versions --bucket $env:AWS_BUCKET --prefix $env:STATE_FILE `
+                        --query 'Versions[?IsLatest==`false`]|[0].VersionId' --output text)
 
-                    # Print the raw JSON output for debugging
-                    Write-Host "📂 Full version history (latest first):"
-                    Get-Content versions.json | Write-Host
-
-                    # Extract the second latest version ID
-                    $PREV_VERSION = aws s3api list-object-versions --bucket $env:AWS_BUCKET --prefix $env:STATE_FILE `
-                        --query 'Versions | sort_by(@, &LastModified) | reverse()[1].VersionId' --output text 2>$null
-
-                    # Debug: Print the extracted version ID
-                    Write-Host "🔎 Extracted Previous Version ID: $PREV_VERSION"
-
-                    # Handle cases where no previous version is found
-                    if ($PREV_VERSION -eq "None" -or [string]::IsNullOrEmpty($PREV_VERSION)) {
-                        Write-Host "❌ No previous state version found! Manual recovery required."
+                    if ($PrevVersion -eq "None") {
+                        Write-Host "No previous state version found! Manual intervention required."
                         exit 1
                     }
 
-                    Write-Host "✅ Found Previous Version: $PREV_VERSION"
-                    Write-Host "⬇️ Downloading previous state file..."
+                    # Step 2: Restore the previous state version
+                    aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" "s3://$env:AWS_BUCKET/$env:STATE_FILE" `
+                        --version-id $PrevVersion --metadata-directive REPLACE
 
-                    # Step 2: Restore the previous state file from S3
-                    aws s3api get-object --bucket $env:AWS_BUCKET --key $env:STATE_FILE --version-id $PREV_VERSION ".\$env:STATE_FILE"
-
-                    # Debug: Confirm the file is downloaded
-                    if (Test-Path ".\$env:STATE_FILE") {
-                        Write-Host "✅ State file restored successfully!"
-                    } else {
-                        Write-Host "❌ Failed to restore state file. Check S3 permissions."
-                        exit 1
-                    }
-
-                    # Step 3: Ensure Terraform is in the correct working directory
-                    Write-Host "📂 Changing to Terraform directory..."
-                    cd "C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\Terraform-apply-build-artifact\\Terraform-Build-Artifact-pipeline\\AWS_S3"
-
-                    # Step 4: Reinitialize Terraform
-                    Write-Host "🔄 Reinitializing Terraform..."
-                    terraform init -reconfigure
-
-                    # Step 5: Apply the restored state
-                    Write-Host "🚀 Running Terraform Apply..."
+                    # Step 3: Download and apply the restored state
+                    aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" ".\$env:STATE_FILE"
+                    terraform init
+                    terraform refresh
                     terraform apply -auto-approve
-
-
+                }
+                catch {
+                    Write-Host "An error occurred during Terraform rollback: $_"
+                    exit 1
+                }
 
                     '''
 
