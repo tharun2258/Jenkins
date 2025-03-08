@@ -52,7 +52,7 @@ pipeline {
         failure{
              echo "Terraform deployment failed! Rolling back..."
                     powershell '''
-                    cd "C:\ProgramData\Jenkins\.jenkins\workspace\Terraform-apply-build-artifact\AWS_S3"
+                    cd "C:/ProgramData/Jenkins/.jenkins/workspace/Terraform-apply-build-artifact/AWS_S3"
                     try {
                     Write-Host "Terraform deployment failed! Rolling back..."
 
