@@ -1,2 +1,2 @@
-bucket_name = "demo-tharun-terraform-v2"
+bucket_name = "demo-tharun-terraform-v3"
 bucket_env = "dev"
