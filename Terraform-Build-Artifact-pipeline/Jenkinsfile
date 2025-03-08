@@ -62,16 +62,17 @@ pipeline {
                     }
 
                     # Step 2: Restore the previous state version
-                    aws s3api get-object --bucket $env:AWS_BUCKET --key $env:STATE_FILE --version-id $PREV_VERSION ".\$env:STATE_FILE"
+                    aws s3api get-object --bucket $env:AWS_BUCKET --key $env:STATE_FILE --version-id $PREV_VERSION ".\\$env:STATE_FILE"
 
                     # Step 3: Ensure Terraform is in the correct directory
-                    cd "C:\ProgramData\Jenkins\.jenkins\workspace\Terraform-apply-build-artifact\Terraform-Build-Artifact-pipeline\AWS_S3"
+                    cd "C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\Terraform-apply-build-artifact\\Terraform-Build-Artifact-pipeline\\AWS_S3"
 
                     # Step 4: Reinitialize Terraform
                     terraform init -reconfigure
 
                     # Step 5: Apply the restored state
                     terraform apply -auto-approve
+
 
                     '''
 
