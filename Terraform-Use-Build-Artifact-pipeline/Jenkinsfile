@@ -7,21 +7,21 @@ pipeline {
     }
 
     stages {
-        stage('Retrieve Terraform State') {
-            steps {
-                dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3'){
-                    copyArtifacts(
-                            projectName: 'Terraform-apply-build-artifact',
-                            selector: lastSuccessful(), 
-                            filter: 'Terraform-Build-Artifact-pipeline/AWS_S3/terraform.tfstate',
-                            flatten: true,
-                            target: '.'
-                        )
-                        echo "State file retrieved successfully."
-                        bat 'dir /b'
-                } 
-            }
-        }
+        // stage('Retrieve Terraform State') {
+        //     steps {
+        //         dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3'){
+        //             copyArtifacts(
+        //                     projectName: 'Terraform-apply-build-artifact',
+        //                     selector: lastSuccessful(), 
+        //                     filter: 'Terraform-Build-Artifact-pipeline/AWS_S3/terraform.tfstate',
+        //                     flatten: true,
+        //                     target: '.'
+        //                 )
+        //                 echo "State file retrieved successfully."
+        //                 bat 'dir /b'
+        //         } 
+        //     }
+        // }
         
 
 
@@ -29,7 +29,7 @@ pipeline {
         stage('Terraform Init') {
             steps {
                 dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
-                    bat 'terraform init --reconfigure'
+                    bat 'terraform init -reconfigure -backend-config="bucket=terraform-tfstate-bucket-demo"'
                 }
             }
         }
