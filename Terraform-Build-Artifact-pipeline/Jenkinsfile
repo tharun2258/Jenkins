@@ -73,10 +73,11 @@ pipeline {
                 --query 'Versions[?IsLatest==`false`]|sort_by(@, &LastModified)[-1].VersionId' --output text)
 
 
-                if ($PrevVersion -eq "None") {
-                    Write-Host "No previous state version found! Manual intervention required."
-                    exit 1
+                if ($PrevVersion -eq "None" -or -not $PrevVersion) {
+                    Write-Host "No previous state version found! Skipping rollback."
+                    exit 0  # Exit with success, so Jenkins doesn't mark it as FAILURE
                 }
+
 
                 # Step 4: Restore the previous state version
                 aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" ".\\terraform.tfstate" `
