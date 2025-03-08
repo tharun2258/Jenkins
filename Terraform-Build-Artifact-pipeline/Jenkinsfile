@@ -54,7 +54,8 @@ pipeline {
                     powershell '''
                     # Step 1: Get the previous version ID of the Terraform state file
                     $PREV_VERSION = aws s3api list-object-versions --bucket $env:AWS_BUCKET --prefix $env:STATE_FILE `
-                        --query "Versions[?IsLatest==\\\\`false\\\\`]|[0].VersionId" --output text
+                    --query "Versions[?IsLatest==\`false\`]|[0].VersionId" --output text
+
                     
                     if ($PREV_VERSION -eq "None") {
                         Write-Host "No previous state version found! Manual intervention required."
@@ -62,8 +63,8 @@ pipeline {
                     }
 
                     # Step 2: Restore the previous state version
-                    aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" "s3://$env:AWS_BUCKET/$env:STATE_FILE" `
-                        --version-id $PREV_VERSION --metadata-directive REPLACE
+                    aws s3api get-object --bucket $env:AWS_BUCKET --key $env:STATE_FILE --version-id $PREV_VERSION ".\$env:STATE_FILE"
+
 
                     # Step 3: Download and apply the restored state
                     aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" ".\$env:STATE_FILE"
