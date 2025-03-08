@@ -51,10 +51,10 @@ pipeline {
     post{
         failure{
              echo "Terraform deployment failed! Rolling back..."
-powershell '''
+                    powershell '''
                     # Step 1: Get the previous version ID of the Terraform state file
                     $PREV_VERSION = aws s3api list-object-versions --bucket $env:AWS_BUCKET --prefix $env:STATE_FILE `
-                        --query "Versions[?IsLatest==\`false\`]|[0].VersionId" --output text
+                        --query "Versions[?IsLatest==\\\\`false\\\\`]|[0].VersionId" --output text
                     
                     if ($PREV_VERSION -eq "None") {
                         Write-Host "No previous state version found! Manual intervention required."
