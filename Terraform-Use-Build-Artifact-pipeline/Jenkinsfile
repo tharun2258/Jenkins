@@ -34,27 +34,16 @@ pipeline {
             }
         }
 
-        stage('Read Terraform State') {
+        stage('Terraform Plan Destroy') {
             steps {
-              dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
-                  bat 'terraform show terraform.tfstate'
-                  }
+                dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
+                    bat 'terraform plan -destroy -out=tfplan'
+                }
             }
         }
     
 
 
-
-
-
-        stage('Terraform plan destroy') {
-            steps {
-                dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
-                  
-                    bat 'terraform plan -destroy -out=tfplan'  // Generate new plan
-                }
-    }
-}
         stage('Terraform Destroy') {
             steps {
                 dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
