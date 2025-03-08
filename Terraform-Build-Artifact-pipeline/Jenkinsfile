@@ -52,26 +52,31 @@ pipeline {
         failure{
              echo "Terraform deployment failed! Rolling back..."
                     powershell '''
-                    # Step 1: Get the previous version ID of the Terraform state file
+                    # Step 1: Get the previous version ID (ignoring the current version)
                     $PREV_VERSION = aws s3api list-object-versions --bucket $env:AWS_BUCKET --prefix $env:STATE_FILE `
-                        --query "Versions[?IsLatest=='false']|[0].VersionId" --output text 2>$null
+                        --query "Versions[?VersionId!=\`$LATEST_VERSION\`]|[0].VersionId" --output text 2>$null
 
+                    # Step 2: Debugging output to check if the previous version is found
+                    Write-Host "Previous Terraform state version: $PREV_VERSION"
+
+                    # Step 3: Handle cases where no previous version exists
                     if ($PREV_VERSION -eq "None" -or [string]::IsNullOrEmpty($PREV_VERSION)) {
-                        Write-Host "No previous state version found! Manual intervention required."
+                        Write-Host "❌ No previous state version found! Manual recovery required."
                         exit 1
                     }
 
-                    # Step 2: Restore the previous state version
-                    aws s3api get-object --bucket $env:AWS_BUCKET --key $env:STATE_FILE --version-id $PREV_VERSION ".\\$env:STATE_FILE"
+                    # Step 4: Restore the previous state file from S3
+                    aws s3api get-object --bucket $env:AWS_BUCKET --key $env:STATE_FILE --version-id $PREV_VERSION ".\$env:STATE_FILE"
 
-                    # Step 3: Ensure Terraform is in the correct directory
+                    # Step 5: Ensure Terraform is in the correct working directory
                     cd "C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\Terraform-apply-build-artifact\\Terraform-Build-Artifact-pipeline\\AWS_S3"
 
-                    # Step 4: Reinitialize Terraform
+                    # Step 6: Reinitialize Terraform
                     terraform init -reconfigure
 
-                    # Step 5: Apply the restored state
+                    # Step 7: Apply the restored state
                     terraform apply -auto-approve
+
 
 
                     '''
