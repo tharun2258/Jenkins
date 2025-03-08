@@ -18,14 +18,7 @@ pipeline {
                             target: '.'
                         )
                         echo "State file retrieved successfully."
-
-                        // List the files in the directory to verify
-                        bat 'dir /b'
-
-                        bat 'powershell -Command "Get-Content terraform.tfstate -TotalCount 20"'
-
-                        // Print the Terraform state file content
-                        bat 'type terraform.tfstate'
+                        
                 } 
             }
         }
@@ -57,11 +50,11 @@ pipeline {
         stage('Terraform plan destroy') {
             steps {
                 dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
-                    bat 'terraform plan -destroy -out=tfplan'
+                    bat 'del /F /Q tfplan'  // Delete existing plan file if it exists
+                    bat 'terraform plan -destroy -out=tfplan'  // Generate new plan
                 }
-            }
-        }
-
+    }
+}
         stage('Terraform Destroy') {
             steps {
                 dir('Terraform-Use-Build-Artifact-pipeline/AWS_S3') {
