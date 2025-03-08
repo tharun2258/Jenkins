@@ -4,6 +4,8 @@ pipeline {
     environment {
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        AWS_BUCKET = "terraform-tfstate-bucket-demo"
+        STATE_FILE = "AWS_S3/terraform.tfstate"
     }
 
     stages {
@@ -44,10 +46,37 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            echo "Saving Terraform state file as an artifact..."
-            archiveArtifacts artifacts: 'Terraform-Build-Artifact-pipeline/AWS_S3/terraform.tfstate', fingerprint: true
+
+
+    post{
+        failure{
+             echo "Terraform deployment failed! Rolling back..."
+             
+                $PREV_VERSION = aws s3api list-object-versions --bucket $AWS_BUCKET --prefix $STATE_FILE `
+                    --query "Versions[?IsLatest==\`false\`]|[0].VersionId" --output text
+
+                if ($PREV_VERSION -eq "None") {
+                    Write-Host "No previous state version found! Manual intervention required."
+                    exit 1
+                }
+
+                # Step 2: Restore the previous state version
+                aws s3 cp "s3://$AWS_BUCKET/$STATE_FILE" "s3://$AWS_BUCKET/$STATE_FILE" `
+                    --version-id $PREV_VERSION --metadata-directive REPLACE
+
+                # Step 3: Download and apply the restored state
+                aws s3 cp "s3://$AWS_BUCKET/$STATE_FILE" ".\$STATE_FILE"
+
+                terraform init
+                terraform refresh
+                terraform apply -auto-approve
         }
     }
+
+    // post {
+    //     always {
+    //         echo "Saving Terraform state file as an artifact..."
+    //         archiveArtifacts artifacts: 'Terraform-Build-Artifact-pipeline/AWS_S3/terraform.tfstate', fingerprint: true
+    //     }
+    // }
 }
