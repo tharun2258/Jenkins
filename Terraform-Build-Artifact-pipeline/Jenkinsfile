@@ -48,42 +48,43 @@ pipeline {
 
 
 
-    post{
-        failure{
-             echo "Terraform deployment failed! Rolling back..."
-                    powershell '''
-                    
-                    try {
-                    Write-Host "Terraform deployment failed! Rolling back..."
+    post {
+    failure {
+        echo "Terraform deployment failed! Rolling back..."
+        dir('Terraform-Build-Artifact-pipeline/AWS_S3') {
+            powershell '''
+            try {
+                Write-Host "Terraform deployment failed! Rolling back..."
 
-                    # Step 1: Get the previous version ID of the Terraform state file
-                    $PrevVersion = (aws s3api list-object-versions --bucket $env:AWS_BUCKET --prefix $env:STATE_FILE `
-                        --query 'Versions[?IsLatest==`false`]|[0].VersionId' --output text)
+                # Step 1: Get the previous version ID of the Terraform state file
+                $PrevVersion = (aws s3api list-object-versions --bucket $env:AWS_BUCKET --prefix $env:STATE_FILE `
+                    --query 'Versions[?IsLatest==`false`]|[0].VersionId' --output text)
 
-                    if ($PrevVersion -eq "None") {
-                        Write-Host "No previous state version found! Manual intervention required."
-                        exit 1
-                    }
-
-                    # Step 2: Restore the previous state version
-                    aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" "s3://$env:AWS_BUCKET/$env:STATE_FILE" `
-                        --version-id $PrevVersion --metadata-directive REPLACE
-                    
-                    # Step 3: Download and apply the restored state
-                    aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" ".\$env:STATE_FILE"
-                    terraform refresh
-                    
-                    terraform apply -auto-approve $env:STATE_FILE
-                }
-                catch {
-                    Write-Host "An error occurred during Terraform rollback: $_"
+                if ($PrevVersion -eq "None") {
+                    Write-Host "No previous state version found! Manual intervention required."
                     exit 1
                 }
 
-                    '''
+                # Step 2: Restore the previous state version
+                aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" "s3://$env:AWS_BUCKET/$env:STATE_FILE" `
+                    --version-id $PrevVersion --metadata-directive REPLACE
+                
+                # Step 3: Download and apply the restored state
+                aws s3 cp "s3://$env:AWS_BUCKET/$env:STATE_FILE" ".\\terraform.tfstate"
 
+                terraform init -force-copy
+                terraform refresh
+                terraform apply -auto-approve terraform.tfstate
+            }
+            catch {
+                Write-Host "An error occurred during Terraform rollback: $_"
+                exit 1
+            }
+            '''
         }
     }
+}
+
 
     // post {
     //     always {
