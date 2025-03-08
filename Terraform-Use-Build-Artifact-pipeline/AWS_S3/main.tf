@@ -4,7 +4,9 @@ resource "random_id" "random_id" {
 }
 
 
-
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "terraform-tfstate-bucket-demo"
+}
 
 resource "aws_s3_bucket" "s3_bucket" {
 
@@ -17,7 +19,7 @@ resource "aws_s3_bucket" "s3_bucket" {
 }
 
 
-resource "aws_s3_object" "s3_object" {
+resource "aws_s3_object" "s3_object_1" {
     for_each = fileset("./images" , "**")
     bucket = aws_s3_bucket.s3_bucket.id
     key = each.key

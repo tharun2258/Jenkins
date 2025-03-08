@@ -4,9 +4,11 @@ resource "random_id" "random_id" {
 }
 
 
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "terraform-tfstate-bucket-demo"
+}
 
-
-resource "aws_s3_bucket "s3_bucket" {
+resource "aws_s3_bucket" "s3_bucket" {
 
     bucket = format("%s-%s" , var.bucket_name , random_id.random_id.hex)
     
