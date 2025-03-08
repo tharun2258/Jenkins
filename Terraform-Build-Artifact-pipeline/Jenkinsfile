@@ -69,9 +69,9 @@ pipeline {
                 git checkout $SecondLatestCommit
                 Write-Host "Checked out to commit: $SecondLatestCommit"
 
-                # Step 3: Get the previous version ID of the Terraform state file
                 $PrevVersion = (aws s3api list-object-versions --bucket $env:AWS_BUCKET --prefix $env:STATE_FILE `
-                    --query 'Versions[?IsLatest==`false`]|[0].VersionId' --output text)
+                --query 'Versions[?IsLatest==`false`]|sort_by(@, &LastModified)[-1].VersionId' --output text)
+
 
                 if ($PrevVersion -eq "None") {
                     Write-Host "No previous state version found! Manual intervention required."
