@@ -1,8 +1,14 @@
 pipeline {
     agent any
+
+    tools {
+    maven 'Maven-3.9.9'
+    }
+
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
     }
+
     stages {
         stage('Build') {
             steps {
