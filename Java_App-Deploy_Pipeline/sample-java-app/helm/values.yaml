@@ -1,0 +1,6 @@
+replicaCount: 1
+image:
+  repository: tharun2258/java-app
+  tag: latest
+  pullPolicy: IfNotPresent
+  pullSecrets: my-registry-secret
