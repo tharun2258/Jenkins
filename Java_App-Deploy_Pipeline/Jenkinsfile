@@ -7,36 +7,41 @@ pipeline {
 
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
+        DIR_PATH = "Java_App-Deploy_Pipeline"
     }
 
     stages {
         stage('Build') {
             steps {
-                bat 'mvn clean package -DskipTests'
+                dir ("${DIR_PATH}")
+                  bat 'mvn clean package -DskipTests'
             }
         }
         stage('Test') {
             steps {
-                bat 'mvn test'
+                dir ("${DIR_PATH}")
+                 bat 'mvn test'
             }
         }
         stage('Docker Build & Push') {
             steps {
-                script {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', 
-                                                      usernameVariable: 'DOCKER_HUB_USERNAME', 
-                                                      passwordVariable: 'DOCKER_HUB_PASSWORD')])
+                dir ("${DIR_PATH}")
+                    script {
+                        withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', 
+                                                            usernameVariable: 'DOCKER_HUB_USERNAME', 
+                                                            passwordVariable: 'DOCKER_HUB_PASSWORD')])
 
-                 bat "docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD} ${DOCKER_HUB_REGISTRY}"
-                 bat "docker build -t tharun2258/java-app:latest ."
-                 bat "docker push tharun2258/java-app/latest"   
-                }                                 
+                        bat "docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD} ${DOCKER_HUB_REGISTRY}"
+                        bat "docker build -t tharun2258/java-app:latest ."
+                        bat "docker push tharun2258/java-app/latest"   
+                    }                                 
               
             }
         }
         stage('Deploy to Minikube') {
             steps {
-                bat 'helm upgrade --install java-app helm/ --set image.tag=latest'
+                dir ("${DIR_PATH}")
+                 bat 'helm upgrade --install java-app helm/ --set image.tag=latest'
             }
         }
     }
