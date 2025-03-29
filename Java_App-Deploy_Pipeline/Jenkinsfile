@@ -35,7 +35,7 @@ pipeline {
 
                         bat "docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}"
                         bat "docker build -t tharun2258/java-app:latest ."
-                        bat "docker push tharun2258/java-app/latest"   
+                        bat "docker push tharun2258/java-app:latest"   
                         }                                  
                     }     
                 }                            
