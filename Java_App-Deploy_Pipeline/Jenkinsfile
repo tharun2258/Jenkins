@@ -2,54 +2,136 @@ pipeline {
     agent any
 
     tools {
-    maven 'Maven-3.9.9'
+        maven 'Maven-3.9.9'
+        jdk 'JDK-17'
     }
 
     environment {
+        DOCKER_IMAGE = "tharun2258/java-app"
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
         DIR_PATH = "Java_App-Deploy_Pipeline"
     }
 
     stages {
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Dependency Management') {
+            steps {
+                dir("${DIR_PATH}") {
+                    bat 'mvn dependency:resolve'
+                }
+            }
+        }
+
+        stage('Static Code Analysis') {
+            steps {
+                dir("${DIR_PATH}") {
+                    bat 'mvn checkstyle:check'
+                }
+            }
+        }
+
         stage('Build') {
             steps {
-                dir ("${DIR_PATH}"){
-                  bat 'mvn clean package -DskipTests'
+                dir("${DIR_PATH}") {
+                    bat 'mvn clean package -DskipTests'
                 }
             }
         }
-        stage('Test') {
+
+        stage('Unit Tests & Code Coverage') {
             steps {
-                dir ("${DIR_PATH}"){
-                 bat 'mvn test'
+                dir("${DIR_PATH}") {
+                    bat 'mvn test jacoco:report'
                 }
             }
         }
-        stage('Docker Build & Push') {
+
+        stage('SonarQube Analysis') {
             steps {
-                dir ("${DIR_PATH}"){
+                withSonarQubeEnv('SonarQube') {
+                    dir("${DIR_PATH}") {
+                        bat 'mvn sonar:sonar -Dsonar.projectKey=java-app -Dsonar.host.url=http://sonarqube:9000'
+                    }
+                }
+            }
+        }
+
+        stage('Security Scans') {
+            parallel {
+                stage('OWASP Dependency Check') {
+                    steps {
+                        dir("${DIR_PATH}") {
+                            bat 'mvn org.owasp:dependency-check-maven:check'
+                        }
+                    }
+                }
+                stage('Trivy Docker Image Scan') {
+                    steps {
+                        script {
+                            bat 'trivy fs --severity HIGH,CRITICAL . || exit 1'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Versioning') {
+            steps {
+                script {
+                    def version = bat(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+                    env.BUILD_VERSION = version
+                    echo "Building version: ${BUILD_VERSION}"
+                }
+            }
+        }
+
+        stage('Build & Push Docker Image') {
+            steps {
+                dir("${DIR_PATH}") {
                     script {
                         withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', 
-                                                            usernameVariable: 'DOCKER_HUB_USERNAME', 
-                                                            passwordVariable: 'DOCKER_HUB_PASSWORD')]){
-
-                        bat "docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}"
-                        //bat "docker build -t java-app:latest ."
-                        bat "docker build --no-cache -t java-app:latest ."
-                        bat "docker tag java-app:latest tharun2258/java-app:latest"
-                        bat "docker push tharun2258/java-app:latest"   
-                        }                                  
-                    }     
-                }                            
-              
-            }
-        }
-        stage('Deploy to Minikube') {
-            steps {
-                dir ("${DIR_PATH}"){
-                 bat 'helm upgrade --install java-app helm/ --set image.tag=latest'
+                                                          usernameVariable: 'DOCKER_HUB_USERNAME', 
+                                                          passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
+                            bat "docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}"
+                            bat "docker build --no-cache -t ${DOCKER_IMAGE}:${BUILD_VERSION} ."
+                            bat "docker tag ${DOCKER_IMAGE}:${BUILD_VERSION} ${DOCKER_IMAGE}:latest"
+                            bat "docker push ${DOCKER_IMAGE}:${BUILD_VERSION}"
+                            bat "docker push ${DOCKER_IMAGE}:latest"
+                        }
+                    }
                 }
             }
+        }
+
+        stage('Deploy to Minikube') {
+            steps {
+                dir("${DIR_PATH}") {
+                    bat "helm upgrade --install java-app helm/ --set image.tag=${BUILD_VERSION}"
+                }
+            }
+        }
+
+        stage('Post-Deployment Health Check') {
+            steps {
+                script {
+                    bat "kubectl get pods"
+                    bat "kubectl logs -l app=java-app"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment completed successfully!"
+        }
+        failure {
+            echo "Deployment failed!"
         }
     }
 }
