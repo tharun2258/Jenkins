@@ -73,6 +73,7 @@ pipeline {
                 stage('Trivy Docker Image Scan') {
                     steps {
                         script {
+                            bat 'trivy --version'
                             bat 'trivy fs --severity HIGH,CRITICAL . || exit 1'
                         }
                     }
