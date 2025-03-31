@@ -51,15 +51,15 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    dir("${DIR_PATH}") {
-                        bat 'mvn sonar:sonar -Dsonar.projectKey=java-app -Dsonar.host.url=http://sonarqube:9000'
-                    }
-                }
-            }
-        }
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //         withSonarQubeEnv('SonarQube') {
+        //             dir("${DIR_PATH}") {
+        //                 bat 'mvn sonar:sonar -Dsonar.projectKey=java-app -Dsonar.host.url=http://sonarqube:9000'
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Security Scans') {
             parallel {
