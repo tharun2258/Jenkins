@@ -13,3 +13,4 @@ public final class DemoApplication {  // Made class final
     private DemoApplication() {
         throw new UnsupportedOperationException("Utility class");
     }
+}
