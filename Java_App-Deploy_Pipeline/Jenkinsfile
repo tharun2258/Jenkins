@@ -84,10 +84,13 @@ pipeline {
         stage('Versioning') {
             steps {
                 script {
-                    def version = bat(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+                    def version = bat(script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout', returnStdout: true).trim()
+                    version = version.split('\r?\n')[-1].trim() // Extract last valid line
                     env.BUILD_VERSION = version
                     echo "Building version: ${BUILD_VERSION}"
                 }
+
+
             }
         }
 
@@ -100,9 +103,9 @@ pipeline {
                                                           passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
                             bat "docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}"
                             bat "docker build --no-cache -t ${DOCKER_IMAGE}:${BUILD_VERSION} ."
-                            bat "docker tag ${DOCKER_IMAGE}:${BUILD_VERSION} ${DOCKER_IMAGE}:latest"
+                            bat "docker tag ${DOCKER_IMAGE}:${BUILD_VERSION} ${DOCKER_IMAGE}:${BUILD_VERSION}"
                             bat "docker push ${DOCKER_IMAGE}:${BUILD_VERSION}"
-                            bat "docker push ${DOCKER_IMAGE}:latest"
+                            
                         }
                     }
                 }
