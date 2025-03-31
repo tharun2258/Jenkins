@@ -17,9 +17,9 @@ public final class DemoApplication {  // Marked final to prevent inheritance
     /**
      * Main method to launch the Spring Boot application.
      *
-     * @param args Command-line arguments
+     * @param args Command-line arguments (must be final)
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {  // Made args final
         SpringApplication.run(DemoApplication.class, args);
     }
 }
